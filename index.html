@@ -140,6 +140,8 @@
 
         let whitePlayer = true;
 
+        let defensivePlayer = null;
+
         let enemyPlayer = 'black';
 
         const whiteChessman = [whitePawn.chessman, whiteRook.chessman, whiteKnight.chessman,
@@ -518,7 +520,17 @@
         }
 
         function enemySquare(row, col) {
-            return document.getElementById(`${row} - ${col}`).classList.contains(enemyPlayer);
+            console.log(checkEnemyMove);
+            console.log(defensivePlayer);
+            console.log(enemyPlayer);
+            if(checkEnemyMove){
+                console.log('fiende sjekkes');
+                return document.getElementById(`${row} - ${col}`).classList.contains(defensivePlayer);
+            } 
+            else {
+                console.log('fiende sjekkes ikke');
+                return document.getElementById(`${row} - ${col}`).classList.contains(enemyPlayer);
+        }
 
         }
 
@@ -645,6 +657,7 @@
 
         function isKingCheck() {
             let king = whitePlayer === true ? whiteKing : blackKing;
+            
             let kingSquare = findKing(king);
             // let enemyPieces = whitePlayer === true ? blackPieces : whitePieces;
             const tempMoves = [...possibleMoves];
@@ -667,6 +680,7 @@
                             console.log('King is checked');
                             console.log(possibleMoves);
                             checkEnemyMove = false;
+                            // defensivePlayer = null;
                             return true;
                         }
 
@@ -686,6 +700,7 @@
             enemyMoves.splice(0);
             enPassantSquare.splice(0);
             checkEnemyMove = false;
+            // defensivePlayer = null;
             return false;
         }
 
@@ -708,6 +723,9 @@
             for (let move of oldPossibleMoves) {
                 let testedSquare = document.getElementById(`${move}`);
                 let testedOGhtml = testedSquare.innerHTML;
+                defensivePlayer = whitePlayer === true ? 'white' : 'black';
+                testedSquare.classList.add(defensivePlayer);
+
                 console.log('skjera');
                 console.log(testedOGhtml);
                 
@@ -727,6 +745,8 @@
 
                 squareID.innerHTML = testedSquare.innerHTML;
                 testedSquare.innerHTML = testedOGhtml;
+                testedSquare.classList.remove(defensivePlayer);
+                defensivePlayer = null;
 
                 if (kingChecked) {
                     possibleMoves.splice(possibleMoves.indexOf(`${move}`), 1);
