@@ -275,7 +275,7 @@
             if (kingInDanger) {
                 console.log('hello');
                 console.log(possibleMoves);
-                filterMoves();
+                filterMoves(squareID);
             }
             showMoves();
             playerSelect = squareID;
@@ -718,7 +718,7 @@
             }
         }
 
-        function filterMoves() {
+        function filterMoves(pieceLocation) {
             const oldPossibleMoves = [...possibleMoves];
 
             //sjekk om kongen er i sjakk gitt de forskjellige hypotetiske game states
@@ -741,13 +741,13 @@
                 // IDEER: move funksjonene????
                 // nvm fikset, var rot med classList
 
-                testedSquare.innerHTML = squareID.innerHTML;
-                squareID.innerHTML = '';
+                testedSquare.innerHTML = pieceLocation.innerHTML;
+                pieceLocation.innerHTML = '';
                 console.log(testedSquare);
-                console.log(squareID.innerHTML);
+                console.log(pieceLocation.innerHTML);
                 let kingChecked = isKingCheck();
 
-                squareID.innerHTML = testedSquare.innerHTML;
+                pieceLocation.innerHTML = testedSquare.innerHTML;
                 testedSquare.innerHTML = testedOGhtml;
                 testedSquare.classList.remove(defensivePlayer);
                 defensivePlayer = null;
@@ -765,9 +765,10 @@
                 for (let row of rows) {
                     for (let col of columns) {
                         let piece = checkPiece(row, col);
+                        let pieceLocation = document.getElementById(`${row} - ${col}`)
                         if (piece.player !== enemyPlayer) {
                             checkMoves(piece, row, col);
-                            filterMoves();
+                            filterMoves(pieceLocation);
                             kingSavingMoves.push(...possibleMoves);
                             possibleMoves.splice(0);
 
@@ -779,7 +780,7 @@
             }
 
 
-        // HUSK ENPASSANT MOVE BUG
+        // HUSK ENPASSANT MOVE BUGß
 
 
     </script>
