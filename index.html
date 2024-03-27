@@ -743,11 +743,13 @@
 
                 testedSquare.innerHTML = pieceLocation.innerHTML;
                 pieceLocation.innerHTML = '';
+                pieceLocation.classList.remove(defensivePlayer);
                 console.log(testedSquare);
                 console.log(pieceLocation.innerHTML);
                 let kingChecked = isKingCheck();
 
                 pieceLocation.innerHTML = testedSquare.innerHTML;
+                pieceLocation.classList.add(defensivePlayer);
                 testedSquare.innerHTML = testedOGhtml;
                 testedSquare.classList.remove(defensivePlayer);
                 defensivePlayer = null;
