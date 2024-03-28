@@ -269,14 +269,15 @@
 
         function selectPiece(row, col) {
             if (squareID.innerHTML === '') return;
-            let kingInDanger = isKingCheck();
+            // let kingInDanger = isKingCheck();
             let piece = checkPiece(row, col);
             checkMoves(piece, row, col);
-            if (kingInDanger) {
-                console.log('hello');
-                console.log(possibleMoves);
-                filterMoves(squareID);
-            }
+            // if (kingInDanger) {
+            //     console.log('hello');
+            //     console.log(possibleMoves);
+            //     filterMoves();
+            // }
+            filterMoves();
             showMoves();
             playerSelect = squareID;
             playerSelect.style.backgroundColor = 'red';
@@ -664,6 +665,7 @@
             let kingSquare = findKing(king);
             // let enemyPieces = whitePlayer === true ? blackPieces : whitePieces;
             const tempMoves = [...possibleMoves];
+            const tempPassantSquare = [...enPassantSquare];
             checkEnemyMove = true;
             // possibleMoves.splice(0);
             console.log(kingSquare);
@@ -680,6 +682,7 @@
                         if (enemyMoves.includes(`${kingSquare.row} - ${kingSquare.col}`)) {
                             enemyMoves.splice(0);
                             enPassantSquare.splice(0);
+                            for (square of tempPassantSquare) enPassantSquare.push(square);
                             console.log('King is checked');
                             console.log(possibleMoves);
                             checkEnemyMove = false;
@@ -696,12 +699,14 @@
                         enemyMoves.splice(0);
                         console.log(possibleMoves);
                         enPassantSquare.splice(0);
+                        for (square of tempPassantSquare) enPassantSquare.push(square);
                         // checkEnemyMove = false;
                     }
                 }
             }
             enemyMoves.splice(0);
             enPassantSquare.splice(0);
+            for (square of tempPassantSquare) enPassantSquare.push(square);
             checkEnemyMove = false;
             // defensivePlayer = null;
             return false;
@@ -718,7 +723,7 @@
             }
         }
 
-        function filterMoves(pieceLocation) {
+        function filterMoves() {
             const oldPossibleMoves = [...possibleMoves];
 
             //sjekk om kongen er i sjakk gitt de forskjellige hypotetiske game states
@@ -741,15 +746,15 @@
                 // IDEER: move funksjonene????
                 // nvm fikset, var rot med classList
 
-                testedSquare.innerHTML = pieceLocation.innerHTML;
-                pieceLocation.innerHTML = '';
-                pieceLocation.classList.remove(defensivePlayer);
+                testedSquare.innerHTML = squareID.innerHTML;
+                squareID.innerHTML = '';
+                squareID.classList.remove(defensivePlayer);
                 console.log(testedSquare);
-                console.log(pieceLocation.innerHTML);
+                console.log(squareID.innerHTML);
                 let kingChecked = isKingCheck();
 
-                pieceLocation.innerHTML = testedSquare.innerHTML;
-                pieceLocation.classList.add(defensivePlayer);
+                squareID.innerHTML = testedSquare.innerHTML;
+                squareID.classList.add(defensivePlayer);
                 testedSquare.innerHTML = testedOGhtml;
                 testedSquare.classList.remove(defensivePlayer);
                 defensivePlayer = null;
@@ -767,18 +772,31 @@
                 for (let row of rows) {
                     for (let col of columns) {
                         let piece = checkPiece(row, col);
-                        let pieceLocation = document.getElementById(`${row} - ${col}`)
                         if (piece.player !== enemyPlayer) {
+                            squareID = document.getElementById(`${row} - ${col}`);
                             checkMoves(piece, row, col);
-                            filterMoves(pieceLocation);
+                            filterMoves();
                             kingSavingMoves.push(...possibleMoves);
                             possibleMoves.splice(0);
+                            squareID = null;
 
                         }
                     }
                 }
-                if(kingSavingMoves.length === 0) alert('Sjakkmatt!');
+                if(kingSavingMoves.length === 0) {
+                    alert('Sjakkmatt!');
+                    console.log('Sjakkmatt!');
+                }
+                else kingSavingMoves.splice(0);
                 //FUNKER IKKE: squareID problemer???
+            }
+
+            function castlingLegal() {
+                //sjekk om kongen eller det relevante tårnet har vært flyttet på
+                //sjekk om det er noe i mellom kongen og tårnet
+                //sjekk om kongen for øyeblikket er i sjakk
+                //sjekk om kongen flytter seg igjennom eller lander på en rute som er sårbar
+                //hardkode hele skiten???
             }
 
 
