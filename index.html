@@ -72,9 +72,18 @@
 
         }
 
-        const blackRook = {
-            chessman: '♜',
+        const blackQueensRook = {
+            chessman: ' ♜', //janky måte å differensiere de to tårnene
             player: 'black',
+            hasMoved: false,
+            side: 'Queen',
+        }
+
+        const blackKingsRook = {
+            chessman: '♜ ',
+            player: 'black',
+            hasMoved: false,
+            side: 'King',
         }
 
         const blackKnight = {
@@ -95,6 +104,7 @@
         const blackKing = {
             chessman: '♚',
             player: 'black',
+            hasMoved: false,
         }
 
         const whitePawn = {
@@ -102,9 +112,17 @@
             player: 'white',
         }
 
-        const whiteRook = {
-            chessman: '♖',
+        const whiteQueensRook = {
+            chessman: ' ♖',
             player: 'white',
+            hasMoved: false,
+            side: 'Queen',
+        }
+        const whiteKingsRook = {
+            chessman: '♖ ',
+            player: 'white',
+            hasMoved: false,
+            side: 'King',
         }
 
         const whiteKnight = {
@@ -125,17 +143,18 @@
         const whiteKing = {
             chessman: '♔',
             player: 'white',
+            hasMoved: false,
         }
 
         // const blackPawn = '&#9823;'
 
         // const whitePawn = '&#9817;'
 
-        const blackPieces = [blackRook, blackKnight, blackBishop, blackQueen,
-            blackKing, blackBishop, blackKnight, blackRook]
+        const blackPieces = [blackQueensRook, blackKnight, blackBishop, blackQueen,
+            blackKing, blackBishop, blackKnight, blackKingsRook]
 
-        const whitePieces = [whiteRook, whiteKnight, whiteBishop, whiteQueen,
-            whiteKing, whiteBishop, whiteKnight, whiteRook]
+        const whitePieces = [whiteQueensRook, whiteKnight, whiteBishop, whiteQueen,
+            whiteKing, whiteBishop, whiteKnight, whiteKingsRook]
 
 
         let whitePlayer = true;
@@ -144,8 +163,8 @@
 
         let enemyPlayer = 'black';
 
-        const whiteChessman = [whitePawn.chessman, whiteRook.chessman, whiteKnight.chessman,
-        whiteBishop.chessman, whiteQueen.chessman, whiteKing.chessman]
+        const whiteChessman = [whitePawn.chessman, whiteQueensRook.chessman, whiteKingsRook.chessman,
+        whiteKnight.chessman, whiteBishop.chessman, whiteQueen.chessman, whiteKing.chessman]
 
         let squareID = null;
 
@@ -173,10 +192,27 @@
 
         const kingSavingMoves = [];
 
+        const castlingMoves = [];
+
+        let playerVsAI = false;
+
+        const aiSquareChoices = [];
+        const aiMoveChoices = [];
+        const aiPossibleMoves = [];
+
+
 
 
         // VIEW
-        drawBoard();
+        chooseGame();
+
+        function chooseGame() {
+            document.getElementById('app').innerHTML = /*HTML*/ `
+            <button onclick="singlePlayer()">1 spiller</button>
+            <button onclick="drawBoard()">2 spillere</button>
+            `;
+
+        }
 
         function drawBoard() {
             let html = ''
@@ -247,10 +283,58 @@
 
         // CONTROLLER
 
+        function singlePlayer() {
+            playerVsAI = true;
+            drawBoard();
+        }
+
+        function aiSelectSquare() {
+            aiSquareChoices.splice(0);
+            for (let row of rows) {
+                for (let col of columns) {
+                    let squareToCheck = document.getElementById(`${row} - ${col}`);
+                    squareID = squareToCheck;
+                    playerSelect = squareID;
+                    let piece = checkPiece(row, col);
+                    checkMoves(piece, row, col);
+                    filterMoves(); //tror det er massive bugs i denne, noe med classList som addes overalt
+                    if (piece.player === 'black' && possibleMoves.length > 0) aiSquareChoices.push({ row, col });
+                    playerSelect = null;
+            squareOwner = null;
+            squareID = null;
+            possibleMoves.splice(0);
+            castlingMoves.splice(0);
+
+
+                }
+            }
+            let randomIndex = Math.floor(Math.random() * aiSquareChoices.length);
+            let randomSquare = aiSquareChoices[randomIndex];
+
+            squareID = document.getElementById(`${randomSquare.row} - ${randomSquare.col}`);
+            selectPiece(randomSquare.row, randomSquare.col);
+            setTimeout(aiSelectMove, 2000);
+
+        }
+
+        function aiSelectMove() {
+            aiMoveChoices.splice(0);
+
+            for (let move of possibleMoves) {
+                aiMoveChoices.push({ row: move[0], col: move[move.length - 1] })
+            }
+
+            let randomIndex = Math.floor(Math.random() * aiMoveChoices.length);
+            let randomMove = aiMoveChoices[randomIndex];
+            selectSquare(randomMove.row, randomMove.col);
+
+        }
+
         function selectSquare(row, col) {
             squareID = document.getElementById(`${row} - ${col}`);
             if (playerSelect === null && checkPlayer()) selectPiece(row, col);
             else if (squareID === playerSelect) resetVar();
+            else if (checkLegal(row, col) && castlingMoves.includes(`${row} - ${col}`)) setCastling(row, col);
             else if (checkPassant(row, col) && checkLegal(row, col)) setPassant(row, col);
             else if (checkLegal(row, col) && enPassantMove.includes(`${row} - ${col}`)) capturePassant(row, col);
             else if (checkLegal(row, col)) setPiece(row, col);
@@ -290,8 +374,8 @@
         }
 
         function checkPiece(row, col) {
-            const allPieces = [blackPawn, blackRook, blackKnight, blackBishop, blackQueen, blackKing,
-                whitePawn, whiteRook, whiteKnight, whiteBishop, whiteQueen, whiteKing];
+            const allPieces = [blackPawn, blackQueensRook, blackKingsRook, blackKnight, blackBishop, blackQueen, blackKing,
+                whitePawn, whiteQueensRook, whiteKingsRook, whiteKnight, whiteBishop, whiteQueen, whiteKing];
             for (let piece of allPieces) {
                 if (piece.chessman === document.getElementById(`${row} - ${col}`).innerHTML) return piece;
             }
@@ -306,8 +390,10 @@
                     movePawn(piece, row, col);
                     break;
 
-                case blackRook:
-                case whiteRook:
+                case blackQueensRook:
+                case blackKingsRook:
+                case whiteQueensRook:
+                case whiteKingsRook:
                     moveRook(piece, row, col);
                     break;
 
@@ -523,15 +609,15 @@
         }
 
         function enemySquare(row, col) {
-            console.log(checkEnemyMove);
-            console.log(defensivePlayer);
-            console.log(enemyPlayer);
+            // console.log(checkEnemyMove);
+            // console.log(defensivePlayer);
+            // console.log(enemyPlayer);
             if (checkEnemyMove) {
-                console.log('fiende sjekkes');
+                // console.log('fiende sjekkes');
                 return document.getElementById(`${row} - ${col}`).classList.contains(defensivePlayer);
             }
             else {
-                console.log('fiende sjekkes ikke');
+                // console.log('fiende sjekkes ikke');
                 return document.getElementById(`${row} - ${col}`).classList.contains(enemyPlayer);
             }
 
@@ -548,7 +634,29 @@
                 { pRow: -1, pCol: 0 },
                 { pRow: 0, pCol: 1 },
                 { pRow: 0, pCol: -1 },
+                // {pRow: 0, pCol: 2},
+                // {pRow: 0, pCol: -2},
             ];
+            let kingsRook = whitePlayer === true ? whiteKingsRook : blackKingsRook;
+            let queensRook = whitePlayer === true ? whiteQueensRook : blackQueensRook;
+
+
+            if (!piece.hasMoved && !checkEnemyMove) {
+                if (!kingsRook.hasMoved) {
+                    let canCastle = castlingLegal(kingsRook);
+                    if (canCastle && !isKingCheck({ row, col })) {
+                        kingMoves.push({ newRow: row, newCol: 6 });
+                        castlingMoves.push(`${row} - 6`);
+                    }
+                }
+                if (!queensRook.hasMoved && !checkEnemyMove) {
+                    let canCastle = castlingLegal(queensRook);
+                    if (canCastle && !isKingCheck({ row, col })) {
+                        kingMoves.push({ newRow: row, newCol: 2 });
+                        castlingMoves.push(`${row} - 2`);
+                    }
+                }
+            }
 
             for (let path of paths) {
                 let newRow = row + path.pRow;
@@ -556,7 +664,7 @@
                 if (withinBoard(newRow, newCol)) {
                     if (!friendlySquare(piece, newRow, newCol)) {
                         kingMoves.push({ newRow, newCol })
-                    }
+                    };
                 };
             };
 
@@ -568,19 +676,31 @@
         }
 
         function setPiece(row, col) {
-            if (enemySquare(row, col)) {
-                if (whitePlayer) capturedBlack.push(squareID.innerHTML);
-                else capturedWhite.push(squareID.innerHTML);
-                squareID.classList.remove(enemyPlayer);
-            }
-            if (checkPromotion(row)) {
-                promotionView();
-            }
-            else {
-                squareID.innerHTML = playerSelect.innerHTML;
+            castlingStatUpdate();
+            if (enemySquare(row, col)) captureEnemy();
+            else if (checkPromotion(row)) promotionView();
+            else changeSquareContent();
+        }
+
+        function captureEnemy() {
+            if (whitePlayer) capturedBlack.push(squareID.innerHTML);
+            else capturedWhite.push(squareID.innerHTML);
+            squareID.classList.remove(enemyPlayer);
+            changeSquareContent();
+        }
+
+        function changeSquareContent(){
+            squareID.innerHTML = playerSelect.innerHTML;
                 resetPassant();
                 nextTurn();
-            }
+        }
+
+        function castlingStatUpdate() {
+            let pieceRow = playerSelect.id[0];
+            let pieceCol = playerSelect.id[playerSelect.id.length - 1];
+            let piece = checkPiece(pieceRow, pieceCol);
+            if (!piece.hasMoved) piece.hasMoved = true;
+            else return;
         }
 
         function nextTurn() {
@@ -588,14 +708,18 @@
             whitePlayer = !whitePlayer;
             resetVar();
             enemyPlayer = whitePlayer === true ? 'black' : 'white';
-            if(isKingCheck())isCheckmate();
+            let kingSquare = findKing();
+            if (isKingCheck(kingSquare)) isCheckmate();
             updateView();
+            if (playerVsAI && !whitePlayer) setTimeout(aiSelectSquare, 1500);
         }
 
         function setPassant(row, col) {
             //lagre hvilken rute som kan flyttes til for å fange bonden som gjorde to hopp
             // + lagre rute ID til bonden som fanges ved å flytte til en passant ruten
             enPassant = true;
+            enPassantMove.splice(0);
+            enPassantCaptive.splice(0);
             enPassantMove.push(enPassantSquare[0]);
             enPassantSquare.splice(0);
             enPassantCaptive.push(`${row} - ${col}`)
@@ -654,22 +778,23 @@
             squareOwner = null;
             squareID = null;
             possibleMoves.splice(0);
+            castlingMoves.splice(0);
         }
 
         // sjekk om en rute er i faresonen fra noen andre ruter og/eller brikker;
         // for å se etter sjakk/sjakkmatt??
 
-        function isKingCheck() {
-            let king = whitePlayer === true ? whiteKing : blackKing;
+        function isKingCheck(kingSquare) {
 
-            let kingSquare = findKing(king);
+
+
             // let enemyPieces = whitePlayer === true ? blackPieces : whitePieces;
             const tempMoves = [...possibleMoves];
             const tempPassantSquare = [...enPassantSquare];
             checkEnemyMove = true;
             // possibleMoves.splice(0);
-            console.log(kingSquare);
-            console.log(possibleMoves);
+            // console.log(kingSquare);
+            // console.log(possibleMoves);
             // console.log(enemyPieces);
 
             for (let row of rows) {
@@ -683,8 +808,8 @@
                             enemyMoves.splice(0);
                             enPassantSquare.splice(0);
                             for (square of tempPassantSquare) enPassantSquare.push(square);
-                            console.log('King is checked');
-                            console.log(possibleMoves);
+                            // console.log('King is checked');
+                            // console.log(possibleMoves);
                             checkEnemyMove = false;
                             // defensivePlayer = null;
                             return true;
@@ -697,7 +822,7 @@
 
 
                         enemyMoves.splice(0);
-                        console.log(possibleMoves);
+                        // console.log(possibleMoves);
                         enPassantSquare.splice(0);
                         for (square of tempPassantSquare) enPassantSquare.push(square);
                         // checkEnemyMove = false;
@@ -712,7 +837,8 @@
             return false;
         }
 
-        function findKing(king) {
+        function findKing() {
+            let king = whitePlayer === true ? whiteKing : blackKing;
             for (let row of rows) {
                 for (let col of columns) {
                     let checkedSquare = document.getElementById(`${row} - ${col}`);
@@ -734,10 +860,10 @@
                 defensivePlayer = whitePlayer === true ? 'white' : 'black';
                 testedSquare.classList.add(defensivePlayer);
 
-                console.log('skjera');
-                console.log(testedOGhtml);
+                // console.log('skjera');
+                // console.log(testedOGhtml);
 
-                console.log(move);
+                // console.log(move);
 
                 // NB NB NB!!!! 
                 // checkMoves i isKingCheck tar IKKE høyde for den hypotetiske game staten når den kalkulerer hvor
@@ -749,9 +875,10 @@
                 testedSquare.innerHTML = squareID.innerHTML;
                 squareID.innerHTML = '';
                 squareID.classList.remove(defensivePlayer);
-                console.log(testedSquare);
-                console.log(squareID.innerHTML);
-                let kingChecked = isKingCheck();
+                // console.log(testedSquare);
+                // console.log(squareID.innerHTML);
+                let kingSquare = findKing();
+                let kingChecked = isKingCheck(kingSquare);
 
                 squareID.innerHTML = testedSquare.innerHTML;
                 squareID.classList.add(defensivePlayer);
@@ -762,42 +889,98 @@
                 if (kingChecked) {
                     possibleMoves.splice(possibleMoves.indexOf(`${move}`), 1);
                 };
-                console.log(possibleMoves);
+                // console.log(possibleMoves);
             }
         }
 
         function isCheckmate() {
             // Sjekk om kongen er i sjakk, loop så gjennom hver brikke for å filtrere ut moves som ikke stopper sjakk
             // om ingen slike moves eksisterer === sjakkmatt??
-                for (let row of rows) {
-                    for (let col of columns) {
-                        let piece = checkPiece(row, col);
-                        if (piece.player !== enemyPlayer) {
-                            squareID = document.getElementById(`${row} - ${col}`);
-                            checkMoves(piece, row, col);
-                            filterMoves();
-                            kingSavingMoves.push(...possibleMoves);
-                            possibleMoves.splice(0);
-                            squareID = null;
+            for (let row of rows) {
+                for (let col of columns) {
+                    let piece = checkPiece(row, col);
+                    if (piece.player !== enemyPlayer) {
+                        squareID = document.getElementById(`${row} - ${col}`);
+                        checkMoves(piece, row, col);
+                        filterMoves();
+                        kingSavingMoves.push(...possibleMoves);
+                        possibleMoves.splice(0);
+                        squareID = null;
 
-                        }
                     }
                 }
-                if(kingSavingMoves.length === 0) {
-                    alert('Sjakkmatt!');
-                    console.log('Sjakkmatt!');
-                }
-                else kingSavingMoves.splice(0);
-                //FUNKER IKKE: squareID problemer???
             }
+            if (kingSavingMoves.length === 0) {
+                alert('Sjakkmatt!');
+                console.log('Sjakkmatt!');
+            }
+            else kingSavingMoves.splice(0);
+            //FUNKER IKKE: squareID problemer???
+            //fikset, squareID var en ting, måtte selvsagt også tømme kingSavingMoves hver gang
+        }
 
-            function castlingLegal() {
-                //sjekk om kongen eller det relevante tårnet har vært flyttet på
-                //sjekk om det er noe i mellom kongen og tårnet
-                //sjekk om kongen for øyeblikket er i sjakk
-                //sjekk om kongen flytter seg igjennom eller lander på en rute som er sårbar
-                //hardkode hele skiten???
+        function castlingLegal(rook) {
+            //sjekk om kongen eller det relevante tårnet har vært flyttet på
+            //sjekk om det er noe i mellom kongen og tårnet
+            //sjekk om kongen for øyeblikket er i sjakk
+            //sjekk om kongen flytter seg igjennom eller lander på en rute som er sårbar
+            //(flytt kongen midlertidig til hver rute og kjør isKingCheck? trekke findKing ut av isKingCheck?)
+            //hardkode hele skiten???
+
+            let playerRow = whitePlayer === true ? '7' : '0';
+
+            const kingTravelSquares = rook.side === 'Queen' ? [{ row: playerRow, col: 2 }, { row: playerRow, col: 3 }] : [{ row: playerRow, col: 5 }, { row: playerRow, col: 6 }];
+            const rookTravelSquare = rook.side === 'Queen' ? [{ row: playerRow, col: 1 }] : [];
+
+            let clearTravel = isRowEmpty(kingTravelSquares, rookTravelSquare);
+            let safeTravel = isRowAttacked(kingTravelSquares);
+
+            if (clearTravel && safeTravel) return true;
+            else return false;
+
+
+        }
+
+        function isRowEmpty(kingSquares, rookSquare) {
+            let squaresToCheck = [...kingSquares, ...rookSquare];
+            for (let square of squaresToCheck) {
+                if (document.getElementById(`${square.row} - ${square.col}`).innerHTML !== '') return false;
             }
+            return true;
+
+        }
+
+        function isRowAttacked(kingSquares) {
+            for (let square of kingSquares) {
+                if (isKingCheck(square)) return false;
+            }
+            return true;
+        }
+
+        function setCastling(row, col) {
+            let king = whitePlayer === true ? whiteKing : blackKing;
+            let rookCol = col === 2 ? 0 : 7;
+            let rook = checkPiece(row, rookCol);
+            let rookLocation = document.getElementById(`${row} - ${rookCol}`);
+            let rookDestCol = rook.side === 'Queen' ? col + 1 : col - 1;
+            let rookDestination = document.getElementById(`${row} - ${rookDestCol}`);
+
+            squareID.innerHTML = playerSelect.innerHTML;
+            rookDestination.innerHTML = rookLocation.innerHTML;
+            rookDestination.classList.add(squareOwner);
+            rookLocation.innerHTML = '';
+            rookLocation.classList.remove(squareOwner);
+            king.hasMoved = true;
+            rook.hasMoved = true;
+
+            resetPassant();
+            nextTurn();
+
+
+
+        }
+
+
 
 
         // HUSK ENPASSANT MOVE BUGß
