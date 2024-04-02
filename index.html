@@ -300,10 +300,10 @@
                     filterMoves(); //tror det er massive bugs i denne, noe med classList som addes overalt
                     if (piece.player === 'black' && possibleMoves.length > 0) aiSquareChoices.push({ row, col });
                     playerSelect = null;
-            squareOwner = null;
-            squareID = null;
-            possibleMoves.splice(0);
-            castlingMoves.splice(0);
+                    squareOwner = null;
+                    squareID = null;
+                    possibleMoves.splice(0);
+                    castlingMoves.splice(0);
 
 
                 }
@@ -689,10 +689,10 @@
             changeSquareContent();
         }
 
-        function changeSquareContent(){
+        function changeSquareContent() {
             squareID.innerHTML = playerSelect.innerHTML;
-                resetPassant();
-                nextTurn();
+            resetPassant();
+            nextTurn();
         }
 
         function castlingStatUpdate() {
