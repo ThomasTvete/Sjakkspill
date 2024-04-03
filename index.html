@@ -198,7 +198,8 @@
 
         const aiSquareChoices = [];
         const aiMoveChoices = [];
-        const aiPossibleMoves = [];
+        const aiPrioritySquare = [];
+        const aiPriorityMove = [];
 
 
 
@@ -288,19 +289,23 @@
             drawBoard();
         }
 
-        function aiSelectSquare() {
-            aiSquareChoices.splice(0);
+        function aiSearchSquare() {
+
             for (let row of rows) {
                 for (let col of columns) {
-                    let squareToCheck = document.getElementById(`${row} - ${col}`);
-                    squareID = squareToCheck;
-                    playerSelect = squareID;
-                    let piece = checkPiece(row, col);
-                    checkMoves(piece, row, col);
-                    filterMoves(); //tror det er massive bugs i denne, noe med classList som addes overalt
-                    if (piece.player === 'black' && possibleMoves.length > 0) aiSquareChoices.push({ row, col });
-                    playerSelect = null;
-                    squareOwner = null;
+                    squareID = document.getElementById(`${row} - ${col}`);
+                    if (checkPlayer()) {
+                        let piece = checkPiece(row, col);
+                        checkMoves(piece, row, col);
+                        filterMoves(); //tror det er massive bugs i denne, noe med classList som addes overalt
+                        //nvm, ble lei av classlist bugs, bruker heller en variant av checkPiece for å sjekke friendly/enemySquare
+                        //så class-basert tilhørighet av ruter er gammelt nytt
+                        checkCaptureMoves(row, col);
+                        if (piece.player === 'black' && possibleMoves.length > 0) {
+                            checkCaptureMoves(row, col);
+                            aiSquareChoices.push({ row, col });
+                        }
+                    }
                     squareID = null;
                     possibleMoves.splice(0);
                     castlingMoves.splice(0);
@@ -308,24 +313,54 @@
 
                 }
             }
-            let randomIndex = Math.floor(Math.random() * aiSquareChoices.length);
-            let randomSquare = aiSquareChoices[randomIndex];
+            aiSelectSquare();
+        }
 
-            squareID = document.getElementById(`${randomSquare.row} - ${randomSquare.col}`);
+        function checkCaptureMoves(row, col) {
+            for (let move of possibleMoves) {
+                if (enemySquare(move[0], move[move.length - 1])) aiPrioritySquare.push({ row, col })
+            }
+        }
+
+        function aiSelectSquare() {
+            let randomCapture = Math.floor(Math.random() * 10)
+            let randomIndex = null;
+            let randomSquare = null;
+            if (aiPrioritySquare.length > 0 && randomCapture > 2) {
+                randomIndex = Math.floor(Math.random() * aiPrioritySquare.length);
+                randomSquare = aiPrioritySquare[randomIndex];
+                squareID = document.getElementById(`${randomSquare.row} - ${randomSquare.col}`);
+            }
+            else {
+                randomIndex = Math.floor(Math.random() * aiSquareChoices.length);
+                randomSquare = aiSquareChoices[randomIndex];
+                squareID = document.getElementById(`${randomSquare.row} - ${randomSquare.col}`);
+            }
+            aiSquareChoices.splice(0);
+            aiPrioritySquare.splice(0);
             selectPiece(randomSquare.row, randomSquare.col);
             setTimeout(aiSelectMove, 2000);
-
         }
 
         function aiSelectMove() {
             aiMoveChoices.splice(0);
+            aiPriorityMove.splice(0);
+            let randomIndex = null;
+            let randomMove = null;
 
             for (let move of possibleMoves) {
                 aiMoveChoices.push({ row: move[0], col: move[move.length - 1] })
+                if (enemySquare(move[0], move[move.length - 1])) aiPriorityMove.push({ row: move[0], col: move[move.length - 1] });
             }
-
-            let randomIndex = Math.floor(Math.random() * aiMoveChoices.length);
-            let randomMove = aiMoveChoices[randomIndex];
+            if (aiPriorityMove.length > 0) {
+                randomIndex = Math.floor(Math.random() * aiPriorityMove.length);
+                randomMove = aiPriorityMove[randomIndex];
+            }
+            else {
+                randomIndex = Math.floor(Math.random() * aiMoveChoices.length);
+                randomMove = aiMoveChoices[randomIndex];
+            }
+            console.log(randomMove);
             selectSquare(randomMove.row, randomMove.col);
 
         }
@@ -454,7 +489,7 @@
                 if (withinBoard(newRow, newCol)) {
                     if (pathName === 'pathStart'
                         && row === startRow
-                        && !friendlySquare(piece, newRow, newCol)
+                        && !friendlySquare(newRow, newCol)
                         && !enemySquare(newRow, newCol)) {
                         pawnMoves.push({ newRow, newCol });
 
@@ -467,7 +502,7 @@
 
                     }
                     else if (pathName === 'path'
-                        && !friendlySquare(piece, newRow, newCol)
+                        && !friendlySquare(newRow, newCol)
                         && !enemySquare(newRow, newCol)) {
                         pawnMoves.push({ newRow, newCol });
                         if (firstMove && row === startRow) {
@@ -498,7 +533,7 @@
                 let newRow = row + path.pRow;
                 let newCol = col + path.pCol;
                 while (withinBoard(newRow, newCol)) {
-                    if (friendlySquare(piece, newRow, newCol)) break;
+                    if (friendlySquare(newRow, newCol)) break;
                     rookMoves.push({ newRow, newCol })
                     if (enemySquare(newRow, newCol)) break;
                     newRow += path.pRow;
@@ -529,7 +564,7 @@
                 let newRow = row + path.pRow;
                 let newCol = col + path.pCol;
                 if (withinBoard(newRow, newCol)) {
-                    if (!friendlySquare(piece, newRow, newCol)) {
+                    if (!friendlySquare(newRow, newCol)) {
                         knightMoves.push({ newRow, newCol })
                     }
                 };
@@ -554,7 +589,7 @@
                 let newRow = row + path.pRow;
                 let newCol = col + path.pCol;
                 while (withinBoard(newRow, newCol)) {
-                    if (friendlySquare(piece, newRow, newCol)) break;
+                    if (friendlySquare(newRow, newCol)) break;
                     bishopMoves.push({ newRow, newCol })
                     if (enemySquare(newRow, newCol)) break;
                     newRow += path.pRow;
@@ -584,7 +619,7 @@
                 let newRow = row + path.pRow;
                 let newCol = col + path.pCol;
                 while (withinBoard(newRow, newCol)) {
-                    if (friendlySquare(piece, newRow, newCol)) break;
+                    if (friendlySquare(newRow, newCol)) break;
                     queenMoves.push({ newRow, newCol })
                     if (enemySquare(newRow, newCol)) break;
                     newRow += path.pRow;
@@ -603,8 +638,18 @@
 
         }
 
-        function friendlySquare(piece, row, col) {
-            return document.getElementById(`${row} - ${col}`).classList.contains(piece.player);
+        function friendlySquare(row, col) {
+            let piece = checkPiece(row, col);
+            let currentPlayer = whitePlayer === true ? 'white' : 'black';
+            if (checkEnemyMove) {
+                if (piece.player === enemyPlayer) return true;
+                else return false;
+            }
+            else {
+                if (piece.player === currentPlayer) return true;
+                else return false;
+            }
+            // return document.getElementById(`${row} - ${col}`).classList.contains(piece.player);
 
         }
 
@@ -612,13 +657,18 @@
             // console.log(checkEnemyMove);
             // console.log(defensivePlayer);
             // console.log(enemyPlayer);
+            let piece = checkPiece(row, col);
             if (checkEnemyMove) {
+                if (piece.player === defensivePlayer) return true;
+                else return false;
                 // console.log('fiende sjekkes');
-                return document.getElementById(`${row} - ${col}`).classList.contains(defensivePlayer);
+                // return document.getElementById(`${row} - ${col}`).classList.contains(defensivePlayer);
             }
             else {
+                if (piece.player === enemyPlayer) return true;
+                else return false;
                 // console.log('fiende sjekkes ikke');
-                return document.getElementById(`${row} - ${col}`).classList.contains(enemyPlayer);
+                // return document.getElementById(`${row} - ${col}`).classList.contains(enemyPlayer);
             }
 
         }
@@ -662,7 +712,7 @@
                 let newRow = row + path.pRow;
                 let newCol = col + path.pCol;
                 if (withinBoard(newRow, newCol)) {
-                    if (!friendlySquare(piece, newRow, newCol)) {
+                    if (!friendlySquare(newRow, newCol)) {
                         kingMoves.push({ newRow, newCol })
                     };
                 };
@@ -711,7 +761,7 @@
             let kingSquare = findKing();
             if (isKingCheck(kingSquare)) isCheckmate();
             updateView();
-            if (playerVsAI && !whitePlayer) setTimeout(aiSelectSquare, 1500);
+            if (playerVsAI && !whitePlayer) setTimeout(aiSearchSquare, 1500);
         }
 
         function setPassant(row, col) {
@@ -795,6 +845,8 @@
             // possibleMoves.splice(0);
             // console.log(kingSquare);
             // console.log(possibleMoves);
+            // console.log(kingSquare.row);
+            // console.log(kingSquare.col);
             // console.log(enemyPieces);
 
             for (let row of rows) {
@@ -804,11 +856,12 @@
                     if (piece.player === enemyPlayer) {
                         //sjekk om movesa til en gitt brikke inkluderer ruta kongen er i
                         checkMoves(piece, row, col);
+                        console.log(enemyMoves);
                         if (enemyMoves.includes(`${kingSquare.row} - ${kingSquare.col}`)) {
                             enemyMoves.splice(0);
                             enPassantSquare.splice(0);
                             for (square of tempPassantSquare) enPassantSquare.push(square);
-                            // console.log('King is checked');
+                            console.log('King is checked');
                             // console.log(possibleMoves);
                             checkEnemyMove = false;
                             // defensivePlayer = null;
@@ -875,7 +928,7 @@
                 testedSquare.innerHTML = squareID.innerHTML;
                 squareID.innerHTML = '';
                 squareID.classList.remove(defensivePlayer);
-                // console.log(testedSquare);
+                console.log(testedSquare.innerHTML);
                 // console.log(squareID.innerHTML);
                 let kingSquare = findKing();
                 let kingChecked = isKingCheck(kingSquare);
