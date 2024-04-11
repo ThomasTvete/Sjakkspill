@@ -1,1 +1,1 @@
-Skal kanskje lage en smarter bot-motstander
+Skal kanskje lage en smartere bot-motstander
