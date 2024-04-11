@@ -10,6 +10,8 @@
 
 .chessFrame {
     display: grid;
+    cursor: default;
+    user-select: none;
     grid-template-columns: repeat(8, 5em);
     grid-template-rows: repeat(8, 5em);
     grid-template-areas:
