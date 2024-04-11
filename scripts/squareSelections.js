@@ -1,7 +1,7 @@
 function selectSquare(row, col) {
     squareID = document.getElementById(`${row} - ${col}`);
     if (playerSelect === null && checkPlayer()) selectPiece(row, col);
-    else if (squareID === playerSelect) resetVar();
+    else if (squareID === playerSelect || !checkLegal(row, col)) resetVar();
     else if (checkLegal(row, col) && castlingMoves.includes(`${row} - ${col}`)) setCastling(row, col);
     else if (checkPassant(row, col) && checkLegal(row, col)) setPassant(row, col);
     else if (checkLegal(row, col) && enPassantMove.includes(`${row} - ${col}`)) capturePassant(row, col);
