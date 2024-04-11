@@ -48,44 +48,12 @@ function setPiece(row, col) {
     if (enemySquare(row, col)) {
         // console.log('brikken');
         captureEnemy();
+        if (checkPromotion(row)) promotionView();
+        else changeSquareContent();
     }
     else if (checkPromotion(row)) promotionView();
     else changeSquareContent();
 }
 
 
-function friendlySquare(row, col) {
-    let piece = checkPiece(row, col);
-    let currentPlayer = whitePlayer === true ? 'white' : 'black';
-    if (checkEnemyMove) {
-        if (piece.player === enemyPlayer) return true;
-        else return false;
-    }
-    else {
-        if (piece.player === currentPlayer) return true;
-        else return false;
-    }
-    // return document.getElementById(`${row} - ${col}`).classList.contains(piece.player);
 
-}
-
-function enemySquare(row, col) {
-    // console.log(checkEnemyMove);
-    // console.log(defensivePlayer);
-    // console.log(enemyPlayer);
-    // console.log('er')
-    let piece = checkPiece(row, col);
-    if (checkEnemyMove) {
-        if (piece.player === defensivePlayer) return true;
-        else return false;
-        // console.log('fiende sjekkes');
-        // return document.getElementById(`${row} - ${col}`).classList.contains(defensivePlayer);
-    }
-    else {
-        if (piece.player === enemyPlayer) return true;
-        else return false;
-        // console.log('fiende sjekkes ikke');
-        // return document.getElementById(`${row} - ${col}`).classList.contains(enemyPlayer);
-    }
-
-}

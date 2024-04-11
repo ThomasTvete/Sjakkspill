@@ -25,7 +25,7 @@ function isKingCheck(kingSquare) {
                     enemyMoves.splice(0);
                     enPassantSquare.splice(0);
                     for (square of tempPassantSquare) enPassantSquare.push(square);
-                    console.log('King is checked');
+                    // console.log('King is checked');
                     // console.log(possibleMoves);
                     checkEnemyMove = false;
                     // defensivePlayer = null;

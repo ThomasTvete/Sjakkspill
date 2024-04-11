@@ -3,7 +3,6 @@ function captureEnemy() {
     if (whitePlayer) capturedBlack.push(squareID.innerHTML);
     else capturedWhite.push(squareID.innerHTML);
     squareID.classList.remove(enemyPlayer);
-    changeSquareContent();
 }
 
 function changeSquareContent() {
@@ -25,7 +24,7 @@ function nextTurn() {
 
 
 function checkPromotion(row) {
-    console.log('promotion time');
+    // console.log('promotion time');
     if (playerSelect.innerHTML === '♙' && row === 0) return true;
     else if (playerSelect.innerHTML === '♟' && row === 7) return true;
     else return false;

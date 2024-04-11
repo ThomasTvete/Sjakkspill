@@ -281,6 +281,42 @@ function moveKing(piece, row, col) {
     
 }
 
+function friendlySquare(row, col) {
+    let piece = checkPiece(row, col);
+    let currentPlayer = whitePlayer === true ? 'white' : 'black';
+    if (checkEnemyMove) {
+        if (piece.player === enemyPlayer) return true;
+        else return false;
+    }
+    else {
+        if (piece.player === currentPlayer) return true;
+        else return false;
+    }
+    // return document.getElementById(`${row} - ${col}`).classList.contains(piece.player);
+
+}
+
+function enemySquare(row, col) {
+    // console.log(checkEnemyMove);
+    // console.log(defensivePlayer);
+    // console.log(enemyPlayer);
+    // console.log('er')
+    let piece = checkPiece(row, col);
+    if (checkEnemyMove) {
+        if (piece.player === defensivePlayer) return true;
+        else return false;
+        // console.log('fiende sjekkes');
+        // return document.getElementById(`${row} - ${col}`).classList.contains(defensivePlayer);
+    }
+    else {
+        if (piece.player === enemyPlayer) return true;
+        else return false;
+        // console.log('fiende sjekkes ikke');
+        // return document.getElementById(`${row} - ${col}`).classList.contains(enemyPlayer);
+    }
+
+}
+
 function withinBoard(row, col) {
     return row >= 0 && row < 8 && col >= 0 && col < 8;
 
