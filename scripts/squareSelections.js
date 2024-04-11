@@ -4,7 +4,7 @@ function selectSquare(row, col) {
     else if (squareID === playerSelect || !checkLegal(row, col)) resetVar();
     else if (checkLegal(row, col) && castlingMoves.includes(`${row} - ${col}`)) setCastling(row, col);
     else if (checkPassant(row, col) && checkLegal(row, col)) setPassant(row, col);
-    else if (checkLegal(row, col) && enPassantMove.includes(`${row} - ${col}`)) capturePassant(row, col);
+    else if (checkLegal(row, col) && checkLegalPassant(row, col)) capturePassant(row, col);
     else if (checkLegal(row, col)) {
         // console.log('yo,');
         setPiece(row, col);
@@ -20,6 +20,12 @@ function checkPlayer() {
 function checkLegal(row, col) {
     return possibleMoves.includes(`${row} - ${col}`);
 
+}
+
+function checkLegalPassant(row, col){
+    if(enPassantMove.includes(`${row} - ${col}`) 
+    && (playerSelect.innerHTML === '♙' || playerSelect.innerHTML === '♟')) return true;
+    else return false;
 }
 
 function selectPiece(row, col) {
