@@ -35,7 +35,7 @@ function drawBoard() {
 
     }
     document.getElementById('app').innerHTML = /*HTML*/ `
-    <h1 id="playerTurn">Det er ${whitePlayer === true ? 'hvit' : 'svart'} sin tur</h1>
+    <h1 id="playerTurn">Det er ${whitePlayer === true ? 'hvit' : 'sort'} spillers tur</h1>
     <div class="table">
         <div id="promotions"></div>
         <div class="chessFrame">${html}</div>
@@ -45,7 +45,7 @@ function drawBoard() {
                 <div id="capturedWhite"></div>
             </div>
             <div class="whiteSideOfBoard">
-                <h5>Utslåtte svarte brikker</h5>
+                <h5>Utslåtte sorte brikker</h5>
                 <div id="capturedBlack"></div>
             </div>
         </div>
@@ -55,7 +55,7 @@ function drawBoard() {
 }
 
 function updateView() {
-    document.getElementById('playerTurn').innerHTML = `Det er ${whitePlayer === true ? 'hvit' : 'svart'} sin tur`
+    document.getElementById('playerTurn').innerHTML = `Det er ${whitePlayer === true ? 'hvit' : 'sort'} spillers tur`
     document.getElementById('capturedWhite').innerHTML = capturedWhite.join(' ');
     document.getElementById('capturedBlack').innerHTML = capturedBlack.join(' ');
     document.getElementById('promotions').innerHTML = '';
